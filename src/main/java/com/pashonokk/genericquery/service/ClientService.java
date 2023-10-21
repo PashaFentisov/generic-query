@@ -33,8 +33,11 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public List<Client> getAllClientsWithOneFilter(String value, String search) {
-        ClientSpecification spec = new ClientSpecification(new SearchCriteria(search, ":", value));
+    public List<Client> getAllClientsWithOneFilter(GenericRequestDto genericRequestDto) {
+        if (genericRequestDto == null) {
+            return clientRepository.findAll();
+        }
+        ClientSpecification spec = new ClientSpecification(new SearchCriteria(genericRequestDto.getFilterValues()));
         return clientRepository.findAll(spec);
     }
 

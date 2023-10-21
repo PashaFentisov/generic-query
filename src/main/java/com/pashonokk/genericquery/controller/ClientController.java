@@ -6,8 +6,8 @@ import com.pashonokk.genericquery.entity.Client;
 import com.pashonokk.genericquery.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,9 +23,8 @@ public class ClientController {
     }
 
     @GetMapping("/apiTest")
-    public List<Client> findAll(@RequestParam(required = false) String search,
-                                @RequestParam(required = false) String value) {
-        return clientService.getAllClientsWithOneFilter(value, search);
+    public List<Client> findAll(@RequestBody(required = false) GenericRequestDto genericRequestDto) {
+        return clientService.getAllClientsWithOneFilter(genericRequestDto);
     }
 
 }
