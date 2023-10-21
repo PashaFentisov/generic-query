@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/generic-query
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
