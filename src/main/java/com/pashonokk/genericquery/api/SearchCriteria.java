@@ -11,7 +11,7 @@ import java.util.Map;
 public class SearchCriteria {
     private List<Criteria> criteriaList;
 
-    public SearchCriteria(Map<String, String> filterValues) {
+    public SearchCriteria(Map<String, List<String>> filterValues) {
         this.criteriaList = filterValues.entrySet().stream()
                 .map(entry -> new Criteria(entry.getKey(), entry.getValue()))
                 .toList();

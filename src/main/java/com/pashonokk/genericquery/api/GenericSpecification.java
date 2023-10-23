@@ -24,10 +24,16 @@ public class GenericSpecification<T> implements Specification<T> {
         List<Predicate> predicates = new ArrayList<>();
         for (Criteria criteria : criteria.getCriteriaList()) {
             if (root.get(criteria.getKey()).getJavaType() == String.class) {
-                predicates.add(builder.like(
-                        root.get(criteria.getKey()), "%" + criteria.getValue() + "%"));
+                List<String> values = criteria.getValues();
+                List<Predicate> orPredicates = new ArrayList<>();
+
+                for (String value : values) {
+                    orPredicates.add(builder.like(root.get(criteria.getKey()), "%" + value + "%"));
+                }
+
+                predicates.add(builder.or(orPredicates.toArray(new Predicate[0])));
             } else {
-                predicates.add(builder.equal(root.get(criteria.getKey()), criteria.getValue()));
+                predicates.add(builder.equal(root.get(criteria.getKey()), criteria.getValues().get(0)));
             }
         }
         return builder.and(predicates.toArray(new Predicate[0]));
