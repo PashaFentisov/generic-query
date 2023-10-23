@@ -16,10 +16,10 @@ import java.util.List;
 public class PageResponse<T> {
     private HttpStatus status;
     private String message;
-    private Long pageNumber;
+    private int pageNumber;
     private int pageSize;
-    private Long totalRecords;
-    private Long totalPages;
+    private int totalRecords;
+    private int totalPages;
     @Setter(AccessLevel.PRIVATE)
     private List<T> records;
 
@@ -27,10 +27,10 @@ public class PageResponse<T> {
         Pageable pageable = page.getPageable();
         this.status = HttpStatus.OK;
         this.message = "processed successfully";
-        this.pageNumber = (long) pageable.getPageNumber();
+        this.pageNumber = pageable.getPageNumber();
         this.pageSize = pageable.getPageSize();
-        this.totalRecords = (long) page.getContent().size();
-        this.totalPages = (long) page.getTotalPages();
+        this.totalRecords = page.getContent().size();
+        this.totalPages = page.getTotalPages();
         this.records = page.getContent();
     }
 

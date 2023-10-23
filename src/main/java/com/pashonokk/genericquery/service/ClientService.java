@@ -34,7 +34,10 @@ public class ClientService {
     @Transactional(readOnly = true)
     public PageResponse<ClientResponseDto> getAllClientsWithOneFilter(GenericRequestDto genericRequestDto) {
         Pageable pageable = PageRequest.of(genericRequestDto.getPage(), genericRequestDto.getSize(),
-                Sort.by(genericRequestDto.getSort().entrySet().stream()
+                Sort.by(genericRequestDto
+                        .getSort()
+                        .entrySet()
+                        .stream()
                         .map(entry -> entry.getValue().equalsIgnoreCase("desc") ?
                                 Sort.Order.desc(entry.getKey()) :
                                 Sort.Order.asc(entry.getKey()))

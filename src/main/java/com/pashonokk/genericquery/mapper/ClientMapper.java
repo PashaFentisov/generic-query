@@ -5,7 +5,7 @@ import com.pashonokk.genericquery.entity.Client;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring", uses = BankMapper.class)
-public interface ClientMapper {
+public interface ClientMapper extends GenericMapper<ClientResponseDto, Client> {
     Client toEntity(ClientResponseDto clientResponseDto);
 
     ClientResponseDto toDto(Client client);
