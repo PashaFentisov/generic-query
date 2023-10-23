@@ -1,8 +1,7 @@
 package com.pashonokk.genericquery.service;
 
 import com.github.javafaker.Faker;
-import com.pashonokk.genericquery.api.GenericSpecification;
-import com.pashonokk.genericquery.api.SearchCriteria;
+import com.pashonokk.genericquery.api.GenericService;
 import com.pashonokk.genericquery.dto.ClientResponseDto;
 import com.pashonokk.genericquery.dto.GenericRequestDto;
 import com.pashonokk.genericquery.dto.PageResponse;
@@ -10,12 +9,8 @@ import com.pashonokk.genericquery.entity.Bank;
 import com.pashonokk.genericquery.entity.Client;
 import com.pashonokk.genericquery.entity.Transaction;
 import com.pashonokk.genericquery.mapper.ClientMapper;
-import com.pashonokk.genericquery.mapper.PageMapper;
 import com.pashonokk.genericquery.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,25 +21,14 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class ClientService {
-    private final PageMapper pageMapper;
     private final ClientRepository clientRepository;
     private final Faker faker;
     private final ClientMapper clientMapper;
+    private final GenericService genericService;
 
     @Transactional(readOnly = true)
     public PageResponse<ClientResponseDto> getAllClientsWithOneFilter(GenericRequestDto genericRequestDto) {
-        Pageable pageable = PageRequest.of(genericRequestDto.getPage(), genericRequestDto.getSize(),
-                Sort.by(genericRequestDto
-                        .getSort()
-                        .entrySet()
-                        .stream()
-                        .map(entry -> entry.getValue().equalsIgnoreCase("desc") ?
-                                Sort.Order.desc(entry.getKey()) :
-                                Sort.Order.asc(entry.getKey()))
-                        .toList()));
-        GenericSpecification<Client> spec = new GenericSpecification<>(
-                new SearchCriteria(genericRequestDto.getFilterValues()));
-        return pageMapper.toPageResponse(clientRepository.findAll(spec, pageable).map(clientMapper::toDto));
+        return genericService.fetch(genericRequestDto, clientRepository, clientMapper::toDto);
     }
 
     @Transactional
