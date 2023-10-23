@@ -1,7 +1,7 @@
 package com.pashonokk.genericquery.service;
 
 import com.github.javafaker.Faker;
-import com.pashonokk.genericquery.api.ClientSpecification;
+import com.pashonokk.genericquery.api.GenericSpecification;
 import com.pashonokk.genericquery.api.SearchCriteria;
 import com.pashonokk.genericquery.dto.ClientResponseDto;
 import com.pashonokk.genericquery.dto.GenericRequestDto;
@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,9 +38,9 @@ public class ClientService {
                         .map(entry -> entry.getValue().equalsIgnoreCase("desc") ?
                                 Sort.Order.desc(entry.getKey()) :
                                 Sort.Order.asc(entry.getKey()))
-                        .collect(Collectors.toList())));
-
-        ClientSpecification spec = new ClientSpecification(new SearchCriteria(genericRequestDto.getFilterValues()));
+                        .toList()));
+        GenericSpecification<Client> spec = new GenericSpecification<>(
+                new SearchCriteria(genericRequestDto.getFilterValues()));
         return pageMapper.toPageResponse(clientRepository.findAll(spec, pageable).map(clientMapper::toDto));
     }
 
