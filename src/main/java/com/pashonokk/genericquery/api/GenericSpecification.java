@@ -38,13 +38,7 @@ public class GenericSpecification<T> implements Specification<T> {
             } else {
                 //todo можем шукати по одному значенню і не можем шукати по декільком полям
                 //todo варто все класти в загальні predicates а не повертати в кожній конструкції щось своє
-                Path<String> path = getPath(root, criteria.getKey());
-                if (path.getJavaType() == String.class) {
-                    return builder.like(
-                            path, "%" + criteria.getValues().get(0) + "%");
-                } else {
-                    return builder.equal(path, criteria.getValues().get(0));
-                }
+                filterByObjectFields(root, builder, criteria, predicates);
             }
         }
         return builder.and(predicates.toArray(new Predicate[0]));
@@ -101,6 +95,20 @@ public class GenericSpecification<T> implements Specification<T> {
             predicates.add(builder.or(orPredicates.toArray(new Predicate[0])));
         } else {
             predicates.add(builder.equal(root.get(criteria.getKey()), criteria.getValues().get(0)));
+        }
+    }
+
+    private void filterByObjectFields(Root<T> root, CriteriaBuilder builder, Criteria criteria, List<Predicate> predicates) {
+        Path<String> path = getPath(root, criteria.getKey());
+        if (path.getJavaType() == String.class) {
+            List<String> values = criteria.getValues();
+            List<Predicate> orPredicates = new ArrayList<>();
+            for (String value : values) {
+                orPredicates.add(builder.like(path, "%" + value + "%"));
+            }
+            predicates.add(builder.or(orPredicates.toArray(new Predicate[0])));
+        } else {
+            predicates.add(builder.equal(path, criteria.getValues().get(0)));
         }
     }
     private Path<String> getPath(Root<T> root, String key) {
