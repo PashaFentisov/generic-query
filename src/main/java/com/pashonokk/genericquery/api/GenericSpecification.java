@@ -8,6 +8,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,11 +35,8 @@ public class GenericSpecification<T> implements Specification<T> {
             if (primitiveFields.contains(criteria.getKey())) {
                 filterByPrimitiveFields(root, builder, criteria, predicates);
             } else if (listFields.contains(criteria.getKey().split("\\.")[0])) {//2
-                Subquery subquery = filterByListFields(root, query, criteria);
-                return builder.exists(subquery);
+                filterByListFields(root, query, criteria, predicates, builder);
             } else {
-                //todo можем шукати по одному значенню і не можем шукати по декільком полям
-                //todo варто все класти в загальні predicates а не повертати в кожній конструкції щось своє
                 filterByObjectFields(root, builder, criteria, predicates);
             }
         }
@@ -56,12 +55,10 @@ public class GenericSpecification<T> implements Specification<T> {
                 .map(Field::getName).toList();
     }
 
-    private Subquery filterByListFields(Root<T> root, CriteriaQuery<?> query, Criteria criteria) {
+    private void filterByListFields(Root<T> root, CriteriaQuery<?> query, Criteria criteria, List<Predicate> predicates, CriteriaBuilder builder) {
         List<Field> fields = Arrays.stream(root.getModel().getJavaType().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class))
                 .toList();
-        //todo тут має бути цикл бо поки робим тільки для одного філда
-        //todo не можем юзати багато значеннь
         Type genericType = fields.get(0).getGenericType();
         Class<?> genericClass = null;
         ParameterizedType parameterizedType = (ParameterizedType) genericType;
@@ -80,7 +77,7 @@ public class GenericSpecification<T> implements Specification<T> {
                         .in(root),
                 subRoot.get(criteria.getKey().split("\\.")[1])
                         .in(criteria.getValues()));
-        return subquery;
+        predicates.add(builder.exists(subquery));
     }
 
     private void filterByPrimitiveFields(Root<T> root, CriteriaBuilder builder, Criteria criteria, List<Predicate> predicates) {
@@ -111,6 +108,7 @@ public class GenericSpecification<T> implements Specification<T> {
             predicates.add(builder.equal(path, criteria.getValues().get(0)));
         }
     }
+
     private Path<String> getPath(Root<T> root, String key) {
         String[] fields = key.split("\\.");
         Path<String> path = root.get(fields[0]);
@@ -126,7 +124,8 @@ public class GenericSpecification<T> implements Specification<T> {
                 type == Long.class ||
                 type == Double.class ||
                 type == String.class ||
-                type == Boolean.class;
+                type == Boolean.class ||
+                type == BigInteger.class ||
+                type == BigDecimal.class;
     }
-
 }
