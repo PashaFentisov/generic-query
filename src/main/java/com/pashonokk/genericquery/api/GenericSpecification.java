@@ -31,11 +31,15 @@ public class GenericSpecification<T> implements Specification<T> {
 
         List<String> listFields = getNamesOfListFields(root);
 
+        List<String> enumFields = getNamesOfEnumFields(root);
+
         for (Criteria criteria : searchCriteria.getCriteriaList()) {
             if (primitiveFields.contains(criteria.getKey())) {
                 filterByPrimitiveFields(root, builder, criteria, predicates);
             } else if (listFields.contains(criteria.getKey().split("\\.")[0])) {//2
                 filterByListFields(root, query, criteria, predicates, builder);
+            } else if (enumFields.contains(criteria.getKey())) {
+                filterByEnumFields(root, builder, criteria, predicates);
             } else {
                 filterByObjectFields(root, builder, criteria, predicates);
             }
@@ -46,6 +50,12 @@ public class GenericSpecification<T> implements Specification<T> {
     private List<String> getNamesOfListFields(Root<T> root) {
         return Arrays.stream(root.getModel().getJavaType().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class))
+                .map(Field::getName).toList();
+    }
+
+    private List<String> getNamesOfEnumFields(Root<T> root) {
+        return Arrays.stream(root.getModel().getJavaType().getDeclaredFields())
+                .filter(field -> field.getType().isEnum())
                 .map(Field::getName).toList();
     }
 
@@ -94,6 +104,22 @@ public class GenericSpecification<T> implements Specification<T> {
             predicates.add(builder.equal(root.get(criteria.getKey()), criteria.getValues().get(0)));
         }
     }
+
+    private void filterByEnumFields(Root<T> root, CriteriaBuilder builder, Criteria criteria, List<Predicate> predicates) {
+        List<String> values = criteria.getValues();
+        List<Predicate> enumPredicates = new ArrayList<>();
+        Enum<?> enumConstant;
+        for (String enumValue : values) {
+            try {
+                enumConstant = Enum.valueOf((Class<Enum>) root.get(criteria.getKey()).getJavaType(), enumValue);
+                enumPredicates.add(builder.equal(root.get(criteria.getKey()), enumConstant));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        predicates.add(builder.or(enumPredicates.toArray(new Predicate[0])));
+    }
+
 
     private void filterByObjectFields(Root<T> root, CriteriaBuilder builder, Criteria criteria, List<Predicate> predicates) {
         Path<String> path = getPath(root, criteria.getKey());

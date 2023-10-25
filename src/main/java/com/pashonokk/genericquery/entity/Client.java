@@ -1,6 +1,7 @@
 package com.pashonokk.genericquery.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.pashonokk.genericquery.enumeration.ClientType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +23,10 @@ public class Client {
     private String firstName;
     private String lastName;
     private String phoneNumber;
+
+    @Enumerated(EnumType.STRING)
+    private ClientType clientType;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "client")
     @JsonIgnore
     private List<Transaction> transactions = new ArrayList<>();
